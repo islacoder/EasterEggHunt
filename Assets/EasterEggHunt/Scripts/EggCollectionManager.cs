@@ -17,6 +17,10 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
 
     private int collectedEggObjects;
 
+    public TypogenicText scoreText;
+    public GameObject scoreTextGameObject;
+
+
     /// <summary>
     /// Gets the tag on the Egg object.
     /// </summary>
@@ -77,9 +81,8 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
             eggObjects.Add(eggClone);
 
         }
-        MessageBox.Instance.Log("Generated "+ eggObjects.Count);
-        MessageBox.Instance.UpdateScore(collectedEggObjects, eggObjectCount);
-        MessageBox.Instance.Message = "Game ready to play";
+        scoreTextGameObject.SetActive(true);
+        scoreText.Text = "You have collected " + collectedEggObjects + " out of " + eggObjectCount;
     }
 
 
@@ -108,19 +111,22 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
 
     public void CollectEgg(GameObject egg)
     {
-        collectedEggObjects--;
+        collectedEggObjects++;
         eggObjects.Remove(egg);
         Destroy(egg, 1.0f);
-        MessageBox.Instance.UpdateScore(collectedEggObjects, eggObjectCount);
+        if (collectedEggObjects == eggObjectCount)
+            scoreText.Text = "Congratulations";
+        else
+            scoreText.Text = "You have collected " + collectedEggObjects + " out of " + eggObjectCount;
+
+
 
     }
 
     public void OnReset()
     {
 
-        MessageBox.Instance.UpdateScore(0, 0);
-        MessageBox.Instance.Message = "Resetting Game";
-        MessageBox.Instance.Log("Started onreset");
+
         collectedEggObjects = 0;
         for (int i = 0; i < eggObjects.Count; i++)
         {
@@ -129,6 +135,16 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
         }
         eggObjects.Clear();
         GenerateEggsInWorld(PlaySpaceManager.Instance.flat_surfaces);
+        scoreText.Text = "You have collected " + collectedEggObjects + " out of " + eggObjectCount;
 
     }
+
+    void StartGame()
+    {
+
+
+
+    }
+
+
 }

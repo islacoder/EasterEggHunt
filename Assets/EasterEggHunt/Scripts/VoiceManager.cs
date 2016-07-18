@@ -8,9 +8,12 @@ public class VoiceManager : Singleton<VoiceManager> {
 
     private KeywordManager keywordManager;
 
+        
     // Use this for initialization
     void Awake () {
         keywordManager = GetComponent<KeywordManager>();
+
+  
 
     }
 
@@ -24,6 +27,7 @@ public class VoiceManager : Singleton<VoiceManager> {
         if (GestureManager.Instance.FocusedObject.CompareTag(EggCollectionManager.Instance.EggTag))
         {
             GestureManager.Instance.FocusedObject.SendMessage("OnSelect");
+
         }
     }
 

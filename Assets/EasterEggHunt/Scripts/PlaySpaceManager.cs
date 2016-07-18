@@ -21,12 +21,19 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
     [Tooltip("Minimum number of floor planes required in order to exit scanning/processing mode.")]
     public uint minimumFloors = 1;
 
+    [Tooltip("TextBox for Status")]
+    public TypogenicText StatusText ;
+
     public List<GameObject> flat_surfaces { get; private set; }
 
     /// <summary>
     /// Indicates if processing of the surface meshes is complete.
     /// </summary>
     private bool meshesProcessed = false;
+
+    private int timeInSeconds = 30;
+
+    private float lastFrameTime;
 
     /// <summary>
     /// GameObject initialization.
@@ -38,7 +45,14 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
 
         // Register for the MakePlanesComplete event.
         SurfaceMeshesToPlanes.Instance.MakePlanesComplete += SurfaceMeshesToPlanes_MakePlanesComplete;
+
+        StatusText.Text = "Scanning space.\r\n " + timeInSeconds + " seconds";
+
+
+
     }
+
+
 
     /// <summary>
     /// Called once per frame.
@@ -54,12 +68,22 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
             {
                 // If we have a limited scanning time, then we should wait until
                 // enough time has passed before processing the mesh.
-                MessageBox.Instance.Message = "Scanning ...";
+
+                if (Time.time > 1f + lastFrameTime)
+                {
+                    timeInSeconds--;
+                    lastFrameTime = Time.time;
+                    StatusText.Text = "Scanning space.\r\n " + timeInSeconds + " seconds";
+
+                }
+
+
             }
             else
             {
                 // The user should be done scanning their environment,
                 // so start processing the spatial mapping data...
+
 
                 if (SpatialMappingManager.Instance.IsObserverRunning())
                 {
@@ -67,8 +91,11 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
                     SpatialMappingManager.Instance.StopObserver();
                 }
 
+                StatusText.Text = "Processing planes.";
+
                 // Call CreatePlanes() to generate planes.
                 CreatePlanes();
+
 
                 // Set meshesProcessed to true.
                 meshesProcessed = true;
@@ -96,16 +123,22 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
 
             // After scanning is over, switch to the secondary (occlusion) material.
             SpatialMappingManager.Instance.SetSurfaceMaterial(secondaryMaterial);
-            MessageBox.Instance.Message = "Starting Games";
+            StatusText.Text = "Processing Done.";
 
             Debug.Log("Finished making flat surfaces.");
 
+            GameObject g = GameObject.FindGameObjectWithTag("ScanningTextBox");
+            g.SetActive(false);
             EggCollectionManager.Instance.GenerateEggsInWorld(flat_surfaces);
+            //StatusText.gameObject
 
 
         }
         else
         {
+
+            StatusText.Text = "Not enough planes found.  Rescan your space";
+
             // Re-enter scanning mode so the user can find more surfaces before processing.
             SpatialMappingManager.Instance.StartObserver();
 
