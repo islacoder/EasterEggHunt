@@ -5,6 +5,7 @@ public class EggManager : MonoBehaviour {
 
     public AudioClip SoundWhenEggIsCollected;
     public AudioClip SoundWhenEggIsGazedAt;
+    public float Width = 0.2f;
 
     private AudioSource audioSource;
 

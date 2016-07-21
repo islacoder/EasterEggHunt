@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+
 using System.Collections.Generic;
 using System.Collections;
 using HoloToolkit.Unity;
@@ -19,7 +20,8 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
 
     public TypogenicText scoreText;
     public GameObject scoreTextGameObject;
-
+    
+    private string[] colors = { "pink", "blue", "orange", "yellow", "green", "purple" };
 
     /// <summary>
     /// Gets the tag on the Egg object.
@@ -32,6 +34,7 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
     // Use this for initialization
     void Start()
     {
+
     }
 
     // Update is called once per frame
@@ -47,42 +50,98 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
     /// <param name="tables"></param>
     public void GenerateEggsInWorld(List<GameObject> flats)
     {
+        List<Vector3> availableEggSlots = new List<Vector3>();
         List<GameObject> availablePlanes = new List<GameObject>();
 
-        CapsuleCollider eggCollider = Egg.GetComponent<CapsuleCollider>();
 
+        CapsuleCollider eggCollider = Egg.GetComponent<CapsuleCollider>();
+        EggManager eggManager = Egg.GetComponent<EggManager>();
+        
         eggObjects = new List<GameObject>();
 
         foreach (GameObject surface in flats)
         {
             Collider planeCollider = surface.GetComponent<Collider>();
-            if (!(eggCollider.bounds.size.x > planeCollider.bounds.size.x || eggCollider.bounds.size.z > planeCollider.bounds.size.z))
+            if (!(eggManager.Width > planeCollider.bounds.size.x || eggManager.Width > planeCollider.bounds.size.z))
             {
                 availablePlanes.Add(surface);
-            }
+                //SurfacePlane plane = surface.GetComponent<SurfacePlane>();
 
+            }
         }
 
-        eggObjectCount = availablePlanes.Count;
-
-        foreach (GameObject surface in availablePlanes)
+        if (availablePlanes.Count == 0)
         {
+            PlaySpaceManager.Instance.ScanSpace();
+        }
+
+        //    if (!(eggManager.Width > planeCollider.bounds.size.x || eggManager.Width > planeCollider.bounds.size.z))
+        //    {
+        //        availablePlanes.Add(surface);
+        //        SurfacePlane plane = surface.GetComponent<SurfacePlane>();
+
+        //        Vector3 point0 = new Vector3(planeCollider.bounds.min.x, point3.y, planeCollider.bounds.min.z);
+        //        Vector3 point1 = new Vector3(point0.x, point3.y, point3.z);
+        //        Vector3 point2 = new Vector3(point3.x, point3.y, point0.z);
+        //        for (Vector3 point = point0; point.x < point3.x; point = Vector3.MoveTowards(point, point2, eggManager.Width))
+        //            for (Vector3 pointa = point; pointa.z < point3.z; pointa = Vector3.MoveTowards(pointa, point1, eggManager.Width))
+        //            {
+        //                // Vector3 pos = new Vector3(x + eggManager.Width / 2.0f, planeCollider.bounds.max.y, z + +eggManager.Width / 2.0f) + ((plane.PlaneThickness + 0.01f) * plane.SurfaceNormal);
+        //                availableEggSlots.Add(pointa);
+
+        //            }
+
+
+        //    }
+
+        //}
+
+        //eggObjectCount = Random.Range(1, 6);
+
+        //for (int i = 0; i< availableEggSlots.Count; i++)
+        //{
+        //    //int randomSlot = Random.Range(0, availableEggSlots.Count - 1);
+        //    int randomSlot = i;
+        //    Vector3 position = availableEggSlots[randomSlot];
+        //    availableEggSlots.RemoveAt(i);
+        //    Quaternion rotation = Egg.transform.localRotation;
+        //    Rigidbody rb = Egg.GetComponent<Rigidbody>();
+        //    rb.useGravity = false;
+        //    GameObject eggClone = Instantiate(Egg, position, rotation) as GameObject;
+        //    eggObjects.Add(eggClone);
+
+        //}
+        Random.InitState(System.DateTime.Now.Millisecond);
+        eggObjectCount = Random.Range(1, availablePlanes.Count);
+
+
+        for (int i = 0; i < eggObjectCount; i++)
+        //foreach (GameObject surface in availablePlanes)
+        {
+            Random.InitState(System.DateTime.Now.Millisecond);
+
+            int selectedPlane = Random.Range(0, availablePlanes.Count - 1);
+            GameObject surface = availablePlanes[selectedPlane];
+            availablePlanes.RemoveAt(selectedPlane);
             SurfacePlane plane = surface.GetComponent<SurfacePlane>();
             Vector3 position;
-            //1 position.x = surface.transform.position.x;// + (plane.PlaneThickness * plane.SurfaceNormal);
-           //2 position.y = plane.Plane.Bounds.Center.y+ plane.PlaneThickness + 0.1f;
-            //3position.z = surface.transform.position.z;
 
-            position = surface.transform.position + ((plane.PlaneThickness + 0.1f) * plane.SurfaceNormal);
-            Quaternion rotation = surface.transform.rotation;//Egg.transform.localRotation;
+            position = surface.transform.position + ((plane.PlaneThickness + 0.03687834f) * new Vector3(0f,1f,0f));
+            Quaternion rotation = Egg.transform.localRotation;
             Rigidbody rb = Egg.GetComponent<Rigidbody>();
             rb.useGravity = false;
+            Random.InitState(System.DateTime.Now.Millisecond);
+
+            string color = colors[Random.Range(0, colors.Length - 1)];
             GameObject eggClone = Instantiate(Egg, position, rotation) as GameObject;
+            Renderer rend = eggClone.GetComponent<Renderer>();
+            Texture texture = Resources.Load(color) as Texture;
+            rend.material.mainTexture = texture;
             eggObjects.Add(eggClone);
 
         }
         scoreTextGameObject.SetActive(true);
-        scoreText.Text = "You have collected " + collectedEggObjects + " out of " + eggObjectCount;
+        scoreText.Text = "You have " + eggObjectCount + (eggObjectCount==1?" egg":" eggs") +  " to collect.";
     }
 
 
@@ -115,9 +174,9 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
         eggObjects.Remove(egg);
         Destroy(egg, 1.0f);
         if (collectedEggObjects == eggObjectCount)
-            scoreText.Text = "Congratulations";
+            scoreText.Text = "Congratulations! You have collected all eggs.";
         else
-            scoreText.Text = "You have collected " + collectedEggObjects + " out of " + eggObjectCount;
+            scoreText.Text = "Score: " + collectedEggObjects + "/" + eggObjectCount;
 
 
 
@@ -126,6 +185,8 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
     public void OnReset()
     {
 
+        GameObject g = GameObject.FindGameObjectWithTag("ScanningTextBox");
+        g.SetActive(true);
 
         collectedEggObjects = 0;
         for (int i = 0; i < eggObjects.Count; i++)
@@ -134,8 +195,10 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
             Destroy(egg);
         }
         eggObjects.Clear();
-        GenerateEggsInWorld(PlaySpaceManager.Instance.flat_surfaces);
-        scoreText.Text = "You have collected " + collectedEggObjects + " out of " + eggObjectCount;
+        scoreTextGameObject.SetActive(false);
+        PlaySpaceManager.Instance.ScanSpace();
+        //GenerateEggsInWorld(PlaySpaceManager.Instance.flat_surfaces);
+        //scoreText.Text = "You have collected " + collectedEggObjects + " out of " + eggObjectCount;
 
     }
 
@@ -145,6 +208,8 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
 
 
     }
+
+
 
 
 }
