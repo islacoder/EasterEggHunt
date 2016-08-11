@@ -17,11 +17,18 @@ namespace HoloToolkit.Unity
         [Tooltip("Select the layers raycast should target.")]
         public LayerMask RaycastLayerMask = Physics.DefaultRaycastLayers;
 
+        [Tooltip("Select the layers x-ray vision should exclude.")]
+        public LayerMask XRayMask = 31;
         /// <summary>
         /// Physics.Raycast result is true if it hits a hologram.
         /// </summary>
         public bool Hit { get; private set; }
-
+        private bool xRayVisionOn = false;
+        public bool XRayVisionOn
+        {
+            get { return xRayVisionOn; }
+            set { xRayVisionOn = value ; }
+        }
         /// <summary>
         /// HitInfo property gives access
         /// to RaycastHit public members.
@@ -65,13 +72,18 @@ namespace HoloToolkit.Unity
         /// </summary>
         private void UpdateRaycast()
         {
+            LayerMask layerMask = RaycastLayerMask;
+            if (XRayVisionOn)
+            {
+                layerMask = layerMask & (~XRayMask);
+            }
             // Get the raycast hit information from Unity's physics system.
             RaycastHit hitInfo;
             Hit = Physics.Raycast(gazeOrigin,
                            gazeDirection,
                            out hitInfo,
                            MaxGazeDistance,
-                           RaycastLayerMask);
+                           layerMask);
 
             GameObject oldFocusedObject = focusedObject;
             // Update the HitInfo property so other classes can use this hit information.

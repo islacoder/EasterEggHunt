@@ -29,6 +29,7 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
     public AudioClip waitingClip;
 
     public List<GameObject> flat_surfaces { get; private set; }
+    public float floor_height { get; private set; }
 
     /// <summary>
     /// Indicates if processing of the surface meshes is complete.
@@ -39,28 +40,50 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
 
     private float lastFrameTime;
 
+
+
     /// <summary>
     /// GameObject initialization.
     /// </summary>
     private void Start()
     {
+        // Register for the MakePlanesComplete event.
+        SurfaceMeshesToPlanes.Instance.MakePlanesComplete += SurfaceMeshesToPlanes_MakePlanesComplete;
+        CreatePlaySpace();
+
+    }
+
+    public void CreatePlaySpace()
+    {
+
+        VoiceManager.Instance.StopKeyWordManager();
+        global::DirectionIndicator.Instance.DirectionIndicatorHelpOn = false;
+        GazeManager.Instance.XRayVisionOn = false;
+
+        EggCollectionManager.Instance.Init();
         // Update surfaceObserver and storedMeshes to use the same material during scanning.
         SpatialMappingManager.Instance.SetSurfaceMaterial(defaultMaterial);
 
-        // Register for the MakePlanesComplete event.
-        SurfaceMeshesToPlanes.Instance.MakePlanesComplete += SurfaceMeshesToPlanes_MakePlanesComplete;
+        meshesProcessed = false;
 
-        timeInSeconds = (int) scanTime;
-        StatusText.Text = "Welcome to HoloEgg Hunt\r\nHoloEgg Hunt is scanning your space ...\r\n " + timeInSeconds + " seconds";
 
-        audioSource = gameObject.AddComponent<AudioSource>();
+        timeInSeconds = (int)scanTime;
+        StatusText.Text = "Welcome to HoloEgg Hunt\r\n";
+
+
+        if (!SpatialMappingManager.Instance.IsObserverRunning())
+        {
+            // Start the observer.
+            SpatialMappingManager.Instance.StartObserver();
+        }
+
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.clip = waitingClip;
         audioSource.loop = true;
         audioSource.volume = .5f;
         audioSource.Play();
-
     }
-
 
 
     /// <summary>
@@ -82,7 +105,7 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
                 {
                     timeInSeconds--;
                     lastFrameTime = Time.time;
-                    StatusText.Text = "Scanning your space ...\r\n " + timeInSeconds + " seconds";
+                    StatusText.Text = "Look around to scan your space ...\r\n " + timeInSeconds + " seconds";
 
                 }
 
@@ -122,7 +145,10 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
         // Collection of floor planes that we can use to set horizontal items on.
         flat_surfaces = new List<GameObject>();
         flat_surfaces = SurfaceMeshesToPlanes.Instance.GetActivePlanes(PlaneTypes.Floor|PlaneTypes.Table);
-
+        List<GameObject> floor_surfaces = SurfaceMeshesToPlanes.Instance.GetActivePlanes(PlaneTypes.Floor);
+        floor_height = -2f;
+        if (floor_surfaces.Count > 0)
+            floor_height = floor_surfaces[0].transform.position.y;
          // Check to see if we have enough flat surfaces to start processing.
         if (flat_surfaces.Count >= 1)
         {
@@ -138,8 +164,9 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
             audioSource.Stop();
 
             GameObject g = GameObject.FindGameObjectWithTag("ScanningTextBox");
-            g.SetActive(false);
-            EggCollectionManager.Instance.GenerateEggsInWorld(flat_surfaces);
+            MeshRenderer mr = g.GetComponent<MeshRenderer>();
+            mr.enabled = false;
+            EggCollectionManager.Instance.GenerateEggsInWorld(flat_surfaces, floor_height);
             //StatusText.gameObject
 
 
@@ -147,8 +174,8 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
         else
         {
 
-            ScanSpace();
-            StatusText.Text = "Spatial surfaces not found.  Rescanning your space";
+            //ScanSpace();
+            StatusText.Text = "I haven't found been able to scan your space.  Say 'Reset game' if you want to start again";
 
         }
     }
@@ -166,21 +193,6 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
         }
     }
 
-    public void ScanSpace()
-    {
-            audioSource.Play();
-            timeInSeconds = (int)scanTime;
-
-            StatusText.Text = "Scanning space ...\r\n " + timeInSeconds + " seconds";
-        // Register for the MakePlanesComplete event.
-        SurfaceMeshesToPlanes.Instance.MakePlanesComplete += SurfaceMeshesToPlanes_MakePlanesComplete;
-
-        // Re-enter scanning mode so the user can find more surfaces before processing.
-        SpatialMappingManager.Instance.StartObserver();
-
-            // Re-process spatial data after scanning completes.
-            meshesProcessed = false;
-    }
 
     /// <summary>
     /// Removes triangles from the spatial mapping surfaces.
@@ -205,4 +217,6 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
             SurfaceMeshesToPlanes.Instance.MakePlanesComplete -= SurfaceMeshesToPlanes_MakePlanesComplete;
         }
     }
+
+
 }
