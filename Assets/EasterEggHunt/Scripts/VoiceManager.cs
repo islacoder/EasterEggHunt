@@ -34,10 +34,12 @@ public class VoiceManager : Singleton<VoiceManager> {
     }
     public void CollectEgg()
     {
-        if (GestureManager.Instance.FocusedObject.CompareTag(EggCollectionManager.Instance.EggTag))
-        {
-            GestureManager.Instance.FocusedObject.SendMessage("OnSelect");
+        if (GestureManager.Instance.FocusedObject != null) { 
+            if (GestureManager.Instance.FocusedObject.CompareTag(EggCollectionManager.Instance.EggTag))
+            {
+                GestureManager.Instance.FocusedObject.SendMessage("OnSelect");
 
+            }
         }
     }
 
@@ -56,25 +58,37 @@ public class VoiceManager : Singleton<VoiceManager> {
     {
         GazeManager.Instance.XRayVisionOn = false;
     }
-    public void HelpOn()
+    public void PointerOn()
     {
 
         global::DirectionIndicator.Instance.DirectionIndicatorHelpOn = true;
      }
-    public void HelpOff()
+    public void PointerOff()
     {
         global::DirectionIndicator.Instance.DirectionIndicatorHelpOn = false;
     }
 
+    public void HelpOn()
+    {
+
+        global::DirectionIndicator.Instance.DirectionIndicatorHelpOn = true;
+        GazeManager.Instance.XRayVisionOn = true;
+
+    }
+
     public void XRayTip()
     {
+        keywordManager.StopKeywordRecognizer();
         TextToSpeechManager tsm = GetComponent<TextToSpeechManager>();
         tsm.SpeakText("Say XRay On to turn on XRay vision");
+        keywordManager.StartKeywordRecognizer();
     }
 
     public void DirectionIndicatorOn()
     {
+        keywordManager.StopKeywordRecognizer();
         TextToSpeechManager tsm = GetComponent<TextToSpeechManager>();
-        tsm.SpeakText("Say Help On for a pointer to the eggs");
+        tsm.SpeakText("Say Pointer On for a pointer to the eggs");
+        keywordManager.StartKeywordRecognizer();
     }
 }

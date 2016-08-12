@@ -150,7 +150,7 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
         if (floor_surfaces.Count > 0)
             floor_height = floor_surfaces[0].transform.position.y;
          // Check to see if we have enough flat surfaces to start processing.
-        if (flat_surfaces.Count >= 1)
+        //if (flat_surfaces.Count >= 1)
         {
             // Reduce our triangle count by removing any triangles
             // from SpatialMapping meshes that intersect with active planes.
@@ -171,13 +171,13 @@ public class PlaySpaceManager : Singleton<PlaySpaceManager>
 
 
         }
-        else
-        {
+        //else
+        //{
 
-            //ScanSpace();
-            StatusText.Text = "I haven't found been able to scan your space.  Say 'Reset game' if you want to start again";
+        //    //ScanSpace();
+        //    StatusText.Text = "I haven't found been able to scan your space.  Say 'Reset game' if you want to start again";
 
-        }
+        //}
     }
 
     /// <summary>

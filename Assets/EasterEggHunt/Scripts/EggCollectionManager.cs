@@ -11,7 +11,7 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
     [Tooltip("Egg Prefab")]
     public GameObject Egg;
 
-
+    public AudioClip VictoryClip;   
     private List<GameObject> eggObjects = new List<GameObject>();
 
     private int eggObjectCount;
@@ -25,6 +25,7 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
     public GameObject scoreTextGameObject;
 
     private bool hasGameStarted = false;
+    bool directionMessageDone = false;
     
     private string[] colors = { "pink", "blue", "orange", "yellow", "green", "purple" };
 
@@ -49,12 +50,13 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
             return;
         if (DirectionIndicator.Instance.DirectionIndicatorHelpOn)
             return;
-        if (Time.time - EggGameStarted > timeToWaitForDirectionMessage)
+        if (Time.time - EggGameStarted > timeToWaitForDirectionMessage & !directionMessageDone)
         {
-            EggGameStarted = Time.time;
-            timeToWaitForDirectionMessage = 2 * timeToWaitForDirectionMessage;
+            //EggGameStarted = Time.time;
+            //timeToWaitForDirectionMessage = 2 * timeToWaitForDirectionMessage;
 
             VoiceManager.Instance.DirectionIndicatorOn();
+            directionMessageDone = true;
         }
     }
 
@@ -63,25 +65,26 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
     public void GenerateEggsInWorld(List<GameObject> flats, float floor_height)
     {
         List<Vector3> availableEggSlots = new List<Vector3>();
-        List<GameObject> availablePlanes = new List<GameObject>();
-
-
-        CapsuleCollider eggCollider = Egg.GetComponent<CapsuleCollider>();
-
 
         List<Vector3> potentialEggPositions = GetEggPositions(flats, new Vector3(.3f, .15f, .3f),floor_height);
 
         if (potentialEggPositions.Count == 0)
         {
-            //DING DONG NO positions
-            scoreTextGameObject.SetActive(false);
-            scoreText.Text = "";
-            GameObject g = GameObject.FindGameObjectWithTag("ScanningTextBox");
-            MeshRenderer mr = g.GetComponent<MeshRenderer>();
-            mr.enabled = true;
-            PlaySpaceManager.Instance.StatusText.Text = "I haven't found been able to scan your space.  Say 'Reset Game' if you want to start again";
+            ////DING DONG NO positions
+            //scoreTextGameObject.SetActive(false);
+            //scoreText.Text = "";
+            //GameObject g = GameObject.FindGameObjectWithTag("ScanningTextBox");
+            //MeshRenderer mr = g.GetComponent<MeshRenderer>();
+            //mr.enabled = true;
+            //PlaySpaceManager.Instance.StatusText.Text = "I haven't found been able to scan your space.  Say 'Reset Game' if you want to start again";
 
-            return;
+            //return;
+
+            for (int i = 0; i < 3; i++)
+            {
+                Vector3 position = new Vector3(Random.Range(-4f, 4f), Random.Range(-1f, 0f), Random.Range(-4f, 4f));
+            }
+
         }
 
 
@@ -103,7 +106,7 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
             int selectedPos = Random.Range(0, potentialEggPositions.Count);
 
 
-            Vector3 position = potentialEggPositions[selectedPos] + ((.07f) * new Vector3(0f, 1f, 0f));
+            Vector3 position = potentialEggPositions[selectedPos] + ((.1f) * new Vector3(0f, 1f, 0f));
             potentialEggPositions.RemoveAt(selectedPos);
 
 
@@ -160,6 +163,9 @@ public class EggCollectionManager : Singleton<EggCollectionManager>
         Destroy(egg, .5f);
         if (collectedEggObjects == eggObjectCount)
         {
+            AudioSource audiosource = Camera.main.gameObject.GetComponentInChildren<AudioSource>();
+            audiosource.clip = VictoryClip;
+            audiosource.Play();
             scoreText.Text = "Congratulations!\r\nYou have collected all eggs.";
             hasGameStarted = false;
             //VoiceManager.Instance.StopKeyWordManager();

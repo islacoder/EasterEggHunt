@@ -84,9 +84,9 @@ using System.Collections.Generic;
                 Destroy(rigidBody);
             }
 
-            Material indicatorMaterial = indicatorRenderer.material;
-            indicatorMaterial.color = DirectionIndicatorColor;
-            indicatorMaterial.SetColor("_TintColor", DirectionIndicatorColor);
+            //Material indicatorMaterial = indicatorRenderer.material;
+            //indicatorMaterial.color = DirectionIndicatorColor;
+            //indicatorMaterial.SetColor("_TintColor", DirectionIndicatorColor);
 
             // Make this indicator a child of the targeted GameObject.
             //indicator.transform.SetParent(gameObject.transform);

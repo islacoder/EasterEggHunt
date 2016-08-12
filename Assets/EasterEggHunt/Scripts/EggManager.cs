@@ -88,39 +88,63 @@ public class EggManager : MonoBehaviour {
                     // 5.a: Our raycast hit a surface, so the planet is occluded.
                     // Set the occlusionObject to active.
                     isOccluded = true;
-                    // At least one point is occluded, so break from the loop.
+                // At least one point is occluded, so break from the loop.
+                if (GazeManager.Instance.XRayVisionOn)
+                {
+                    if (isOccluded)
+                    {
+                        occlusionObject.SetActive(true);
 
-                    break;
+                    }
+                    else
+                    {
+                        occlusionObject.SetActive(false);
+
+
+                    }
+
+
+                }
+                else
+                {
+                    //X Ray vision is not on so the egg is occluded
+                    occlusionObject.SetActive(false);
+
+                }
+                break;
                 }
                 else
                 {
                     // 5.a: The Raycast did not hit, so the egg is not occluded.
                     // Deactivate the occlusionObject.
                     isOccluded = false;
+                if (GazeManager.Instance.XRayVisionOn)
+                {
+                    if (isOccluded)
+                    {
+                        occlusionObject.SetActive(true);
+
+                    }
+                    else
+                    {
+                        occlusionObject.SetActive(false);
+
+
+                    }
+
+
+                }
+                else
+                {
+                    //X Ray vision is not on so the egg is occluded
+                    occlusionObject.SetActive(false);
+
                 }
             }
-
-
-        if (GazeManager.Instance.XRayVisionOn)
-        {
-            if (isOccluded) { 
-                occlusionObject.SetActive(true);
-                
-            }
-            else { 
-                occlusionObject.SetActive(false);
-                
-
             }
 
 
-        }
-        else
-        {
-            //X Ray vision is not on so the egg is occluded
-            occlusionObject.SetActive(false);
 
-        }
     }
 
     void OnSelect()
